@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>安妮 CPR 小遊戲</title>
+<style>
+body {
+font-family: system-ui, sans-serif;
+display: flex;
+gap: 20px;
+padding: 20px;
+}
+#annie {
+width: 200px;
+height: 300px;
+background: #f2c9ac;
+display: flex;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+user-select: none;
+font-size: 24px;
+}
+.panel {
+width: 220px;
+}
+.bar {
+height: 20px;
+background: #ddd;
+margin-bottom: 10px;
+}
+.fill {
+height: 100%;
+background: #4caf50;
+width: 100%;
+}
+canvas {
+background: black;
+width: 100%;
+height: 80px;
+margin-bottom: 10px;
+}
+button {
+margin: 5px 0;
+width: 100%;
+}
+</style>
+</head>
+<body>
+
+<div id="annie">
+<img src="annie.png" alt="安妮">
+</div>
+
+<div class="panel">
+<div>血氧</div>
+<div class="bar"><div id="spo2" class="fill"></div></div>
+
+<div>血壓</div>
+<div class="bar"><div id="bp" class="fill"></div></div>
+
+<div>心電圖</div>
+<canvas id="ecg" width="220" height="80"></canvas>
+
+<button id="shockBtn">⚡ 電擊（充電）</button>
+<button id="drugBtn">💉 打藥（腎上腺素）</button>
+
+<div>☠️ 死亡次數：<span id="deathCount">0</span></div>
+</div>
+
+<script>
+let spo2 = 100;
+let bp = 100;
+let alive = true;
+let deathCount = 0;
+let charging = false;
+let lastCPR = Date.now();
+
+// === ECG ===
+const canvas = document.getElementById("ecg");
+const ctx = canvas.getContext("2d");
+let ecgX = 0;
+let ecgMode = "normal"; // normal | bad | flat
+
+function drawECG() {
+ctx.fillStyle = "black";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+ctx.strokeStyle = "lime";
+ctx.beginPath();
+
+for (let x = 0; x < canvas.width; x++) {
+let y = canvas.height / 2;
+
+if (ecgMode === "normal") {
+y += Math.sin((x + ecgX) * 0.1) * 10;
+} else if (ecgMode === "bad") {
+y += (Math.random() - 0.5) * 10;
+} else {
+y = canvas.height / 2;
+}
+
+ctx.lineTo(x, y);
+}
+ctx.stroke();
+ecgX += 4;
+}
+
+setInterval(drawECG, 50);
+
+// === UI ===
+const spo2Bar = document.getElementById("spo2");
+const bpBar = document.getElementById("bp");
+const annie = document.getElementById("annie");
+
+function updateBars() {
+spo2Bar.style.width = spo2 + "%";
+bpBar.style.width = bp + "%";
+}
+
+function die() {
+alive = false;
+ecgMode = "flat";
+deathCount++;
+document.getElementById("deathCount").textContent = deathCount;
+alert("安妮掛了；（你怎麼可以這樣");
+reset();
+}
+
+function reset() {
+spo2 = 100;
+bp = 100;
+alive = true;
+ecgMode = "normal";
+lastCPR = Date.now();
+}
+
+annie.addEventListener("click", () => {
+if (!alive) return;
+lastCPR = Date.now();
+spo2 += 2;
+bp += 1;
+ecgMode = "normal";
+updateBars();
+});
+
+document.getElementById("shockBtn").addEventListener("click", () => {
+if (!alive || charging) return;
+charging = true;
+ecgMode = "bad";
+
+setTimeout(() => {
+charging = false;
+if (Math.random() > 0.5) {
+bp += 10;
+ecgMode = "normal";
+} else {
+bp -= 20;
+ecgMode = "bad";
+}
+updateBars();
+}, 3000);
+});
+
+document.getElementById("drugBtn").addEventListener("click", () => {
+if (!alive) return;
+bp += 15;
+spo2 -= 5;
+ecgMode = "bad";
+updateBars();
+});
+
+// === life loop ===
+setInterval(() => {
+if (!alive) return;
+
+if (Date.now() - lastCPR > 2000) {
+spo2 -= 2;
+bp -= 1;
+ecgMode = "bad";
+}
+
+spo2 -= 0.5;
+bp -= 0.3;
+
+if (spo2 <= 0 || bp <= 0) {
+die();
+}
+
+spo2 = Math.max(spo2, 0);
+bp = Math.max(bp, 0);
+updateBars();
+}, 1000);
+</script>
+
+</body>
+</html>

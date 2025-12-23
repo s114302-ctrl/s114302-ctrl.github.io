@@ -1,24 +1,138 @@
-<div id="main-screen">
-  <h1>⚠️ 警告：網路成癮偵測 ⚠️</h1>
-  <p>你的大腦正在被數位世界過載。按下開始，接受現實。</p>
-  <button id="start-btn">開始終結成癮</button>
-</div>
-<div id="glitch-overlay" style="display:none;">
-  <div class="warning-popup">系統崩潰中...</div>
-  <div class="warning-popup">連線過載...</div>
-</div>
-const startBtn = document.getElementById('start-btn');
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網路成癮終結者 - 數位排毒計畫</title>
+    <style>
+        /* CSS 樣式部分 */
+        body {
+            background-color: #000;
+            color: #ff0000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            margin: 0;
+            transition: background 0.1s;
+        }
 
-startBtn.addEventListener('click', () => {
-  // 播放警告音效 (建議加入)
-  
-  // 模擬彈窗：每 100 毫秒在隨機位置產生一個警告框
-  setInterval(() => {
-    const fakeWindow = document.createElement('div');
-    fakeWindow.className = 'fake-popup';
-    fakeWindow.innerText = "警告：請離開電腦！";
-    fakeWindow.style.left = Math.random() * 100 + "vw";
-    fakeWindow.style.top = Math.random() * 100 + "vh";
-    document.body.appendChild(fakeWindow);
-  }, 100);
-});
+        #main-ui {
+            text-align: center;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 40px;
+            border: 2px solid #ff0000;
+            box-shadow: 0 0 20px #ff0000;
+        }
+
+        h1 { font-size: 3rem; margin-bottom: 10px; letter-spacing: 5px; }
+        p { font-size: 1.2rem; color: #ccc; margin-bottom: 30px; }
+
+        #start-btn {
+            background: transparent;
+            border: 2px solid #ff0000;
+            color: #ff0000;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        #start-btn:hover {
+            background: #ff0000;
+            color: #000;
+            box-shadow: 0 0 30px #ff0000;
+        }
+
+        /* 偽視窗樣式 - 模擬舊版 Windows 錯誤風格 */
+        .fake-window {
+            position: absolute;
+            width: 320px;
+            background: #dfdfdf;
+            border: 2px solid #000;
+            box-shadow: 4px 4px 0 #444;
+            color: #000;
+            z-index: 1000;
+            pointer-events: none;
+            font-family: "MS Sans Serif", "Arial", sans-serif;
+        }
+
+        .window-header {
+            background: linear-gradient(90deg, #0000aa, #1084d0);
+            color: white;
+            padding: 3px 8px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .window-body {
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* 螢幕震撼效果 */
+        .critical-error {
+            animation: shake 0.1s infinite;
+            background-color: #330000 !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            40% { transform: translate(3px, 2px) rotate(0deg); }
+            60% { transform: translate(-1px, -1px) rotate(1deg); }
+            80% { transform: translate(-3px, 1px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        #final-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            background: #000;
+            color: #fff;
+            padding: 50px;
+            border: 5px solid red;
+            text-align: center;
+            display: none;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="main-ui">
+        <h1 id="title">SYSTEM OVERLOAD</h1>
+        <p>偵測到重度網路成癮。系統即將啟動物理隔離程序。</p>
+        <button id="start-btn">開始終結成癮</button>
+    </div>
+
+    <div id="final-message">
+        <h2 style="font-size: 4rem; color: red;">終止成功</h2>
+        <p style="font-size: 1.5rem;">電腦已「死機」（模擬）。</p>
+        <p>現在，請離開座位，去看一下窗外的風景。</p>
+        <button onclick="location.reload()" style="color: white; border: 1px solid white; background: none; padding: 10px;">重新啟動系統</button>
+    </div>
+
+    <script>
+        const startBtn = document.getElementById('start-btn');
+        const mainUI = document.getElementById('main-ui');
+        const finalMsg = document.getElementById('final-message');
+
+        startBtn.addEventListener('click', () => {
+            // 進入視覺震撼模式
+            document.body.classList.add('critical-error');
+            mainUI.style.opacity = '0.1';
+
+            let count = 0;
+            const

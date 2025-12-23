@@ -3,7 +3,6 @@
   <p>你的大腦正在被數位世界過載。按下開始，接受現實。</p>
   <button id="start-btn">開始終結成癮</button>
 </div>
-
 <div id="glitch-overlay" style="display:none;">
   <div class="warning-popup">系統崩潰中...</div>
   <div class="warning-popup">連線過載...</div>

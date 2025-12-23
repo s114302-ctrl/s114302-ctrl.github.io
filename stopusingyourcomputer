@@ -1,0 +1,25 @@
+<div id="main-screen">
+  <h1>⚠️ 警告：網路成癮偵測 ⚠️</h1>
+  <p>你的大腦正在被數位世界過載。按下開始，接受現實。</p>
+  <button id="start-btn">開始終結成癮</button>
+</div>
+
+<div id="glitch-overlay" style="display:none;">
+  <div class="warning-popup">系統崩潰中...</div>
+  <div class="warning-popup">連線過載...</div>
+</div>
+const startBtn = document.getElementById('start-btn');
+
+startBtn.addEventListener('click', () => {
+  // 播放警告音效 (建議加入)
+  
+  // 模擬彈窗：每 100 毫秒在隨機位置產生一個警告框
+  setInterval(() => {
+    const fakeWindow = document.createElement('div');
+    fakeWindow.className = 'fake-popup';
+    fakeWindow.innerText = "警告：請離開電腦！";
+    fakeWindow.style.left = Math.random() * 100 + "vw";
+    fakeWindow.style.top = Math.random() * 100 + "vh";
+    document.body.appendChild(fakeWindow);
+  }, 100);
+});

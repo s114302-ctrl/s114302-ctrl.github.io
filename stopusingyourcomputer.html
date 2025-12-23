@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>網路成癮終結者</title>
+    <title>網路成癮終結者 - 數位排毒計畫</title>
     <style>
         /* CSS 樣式部分 */
         body {
@@ -135,4 +135,57 @@
             mainUI.style.opacity = '0.1';
 
             let count = 0;
-            const
+            const maxWindows = 150; // 產生 150 個偽視窗
+
+            const interval = setInterval(() => {
+                createFakeWindow();
+                count++;
+
+                if (count >= maxWindows) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        // 結束模擬，顯示最後訊息
+                        finalMsg.style.display = 'block';
+                        document.body.classList.remove('critical-error');
+                    }, 1000);
+                }
+            }, 40); // 速度非常快，每 0.04 秒噴一個
+        });
+
+        function createFakeWindow() {
+            const win = document.createElement('div');
+            win.className = 'fake-window';
+            
+            // 隨機分布在畫面各處
+            const x = Math.random() * (window.innerWidth - 300);
+            const y = Math.random() * (window.innerHeight - 150);
+            
+            win.style.left = x + 'px';
+            win.style.top = y + 'px';
+            
+            // 隨機錯誤訊息
+            const messages = [
+                "警告：偵測到社交媒體過量！",
+                "致命錯誤：真實生活連線中斷。",
+                "Error 404: Sleep Not Found.",
+                "建議立即去喝一杯水。",
+                "系統過載：請放下手機！"
+            ];
+            const msg = messages[Math.floor(Math.random() * messages.length)];
+
+            win.innerHTML = `
+                <div class="window-header">
+                    <span>System Critical Error</span>
+                    <span>✕</span>
+                </div>
+                <div class="window-body">
+                    <p>${msg}</p>
+                    <button style="margin-top:10px">確定</button>
+                </div>
+            `;
+            
+            document.body.appendChild(win);
+        }
+    </script>
+</body>
+</html>

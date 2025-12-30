@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>網路成癮終結者</title>
+    <title>網路成癮終結者 - 互動警示版</title>
     <style>
-        /* CSS 樣式部分 */
         body {
             background-color: #000;
             color: #ff0000;
@@ -16,50 +15,39 @@
             height: 100vh;
             overflow: hidden;
             margin: 0;
-            transition: background 0.1s;
         }
 
         #main-ui {
             text-align: center;
             z-index: 10;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             padding: 40px;
             border: 2px solid #ff0000;
             box-shadow: 0 0 20px #ff0000;
         }
 
-        h1 { font-size: 3rem; margin-bottom: 10px; letter-spacing: 5px; }
-        p { font-size: 1.2rem; color: #ccc; margin-bottom: 30px; }
-
-        #start-btn {
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        button#start-btn {
             background: transparent;
             border: 2px solid #ff0000;
             color: #ff0000;
             padding: 15px 40px;
-            font-size: 1.5rem;
-            font-weight: bold;
+            font-size: 1.2rem;
             cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
+            font-weight: bold;
         }
+        button#start-btn:hover { background: #ff0000; color: #000; }
 
-        #start-btn:hover {
-            background: #ff0000;
-            color: #000;
-            box-shadow: 0 0 30px #ff0000;
-        }
-
-        /* 偽視窗樣式 - 模擬舊版 Windows 錯誤風格 */
+        /* 偽視窗樣式 */
         .fake-window {
             position: absolute;
-            width: 320px;
+            width: 300px;
             background: #dfdfdf;
             border: 2px solid #000;
             box-shadow: 4px 4px 0 #444;
             color: #000;
             z-index: 1000;
-            pointer-events: none;
-            font-family: "MS Sans Serif", "Arial", sans-serif;
+            font-family: sans-serif;
         }
 
         .window-header {
@@ -69,28 +57,38 @@
             font-size: 13px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-weight: bold;
+        }
+
+        .close-btn {
+            background: #dfdfdf;
+            color: black;
+            border: 1px solid #000;
+            width: 16px;
+            height: 14px;
+            line-height: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 10px;
         }
 
         .window-body {
             padding: 20px;
             text-align: center;
-            font-size: 14px;
         }
 
-        /* 螢幕震撼效果 */
-        .critical-error {
-            animation: shake 0.1s infinite;
-            background-color: #330000 !important;
+        .ok-btn {
+            margin-top: 10px;
+            padding: 5px 20px;
+            cursor: pointer;
         }
 
+        .critical-error { animation: shake 0.1s infinite; }
         @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            40% { transform: translate(3px, 2px) rotate(0deg); }
-            60% { transform: translate(-1px, -1px) rotate(1deg); }
-            80% { transform: translate(-3px, 1px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+            0% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -1px); }
+            100% { transform: translate(1px, -1px); }
         }
 
         #final-message {
@@ -105,23 +103,22 @@
             border: 5px solid red;
             text-align: center;
             display: none;
-            width: 80%;
         }
     </style>
 </head>
 <body>
 
     <div id="main-ui">
-        <h1 id="title">SYSTEM OVERLOAD</h1>
-        <p>偵測到重度網路成癮。系統即將啟動物理隔離程序。</p>
-        <button id="start-btn">開始終結成癮</button>
+        <h1>SYSTEM OVERLOAD</h1>
+        <p>你的大腦已過載。按下按鈕接受治療。</p>
+        <button id="start-btn">開始終結</button>
     </div>
 
     <div id="final-message">
-        <h2 style="font-size: 4rem; color: red;">終止成功</h2>
-        <p style="font-size: 1.5rem;">電腦已「死機」（模擬）。</p>
-        <p>滾啦<p>
-        <button onclick="location.reload()" style="color: white; border: 1px solid white; background: none; padding: 10px;">重新啟動系統</button>
+        <h2>治療結束</h2>
+        <p>你剛才關掉了這麼多視窗，不累嗎？</p>
+        <p>放下鍵盤，去呼吸新鮮空氣吧。</p>
+        <button onclick="location.reload()" style="background:white; color:black; padding:10px;">重啟系統</button>
     </div>
 
     <script>
@@ -130,61 +127,55 @@
         const finalMsg = document.getElementById('final-message');
 
         startBtn.addEventListener('click', () => {
-            // 進入視覺震撼模式
             document.body.classList.add('critical-error');
             mainUI.style.opacity = '0.1';
 
             let count = 0;
-            const maxWindows = 150; // 產生 150 個偽視窗
+            const maxWindows = 100; // 總共噴出 100 個
 
             const interval = setInterval(() => {
                 createFakeWindow();
                 count++;
-
                 if (count >= maxWindows) {
                     clearInterval(interval);
                     setTimeout(() => {
-                        // 結束模擬，顯示最後訊息
                         finalMsg.style.display = 'block';
                         document.body.classList.remove('critical-error');
-                    }, 1000);
+                    }, 2000);
                 }
-            }, 40); // 速度非常快，每 0.04 秒噴一個
+            }, 100); // 每 0.1 秒噴一個，讓使用者剛好可以試著關關看
         });
 
         function createFakeWindow() {
             const win = document.createElement('div');
             win.className = 'fake-window';
             
-            // 隨機分布在畫面各處
             const x = Math.random() * (window.innerWidth - 300);
             const y = Math.random() * (window.innerHeight - 150);
-            
             win.style.left = x + 'px';
             win.style.top = y + 'px';
             
-            // 隨機錯誤訊息
-            const messages = [
-                "警告：偵測到社交媒體過量！",
-                "致命錯誤：真實生活連線中斷。",
-                "Error 404: Sleep Not Found.",
-                "建議立即去喝一杯水。",
-                "系統過載：請放下手機！"
-            ];
-            const msg = messages[Math.floor(Math.random() * messages.length)];
-
             win.innerHTML = `
                 <div class="window-header">
-                    <span>System Critical Error</span>
-                    <span>✕</span>
+                    <span>Critical Error</span>
+                    <div class="close-btn">✕</div>
                 </div>
                 <div class="window-body">
-                    <p>${msg}</p>
-                    <button style="margin-top:10px">確定</button>
+                    <p>偵測到成癮行為！</p>
+                    <button class="ok-btn">確定</button>
                 </div>
             `;
             
             document.body.appendChild(win);
+
+            // 監聽關閉事件
+            const closeBtn = win.querySelector('.close-btn');
+            const okBtn = win.querySelector('.ok-btn');
+
+            const closeWindow = () => win.remove();
+            
+            closeBtn.addEventListener('click', closeWindow);
+            okBtn.addEventListener('click', closeWindow);
         }
     </script>
 </body>

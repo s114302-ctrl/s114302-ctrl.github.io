@@ -2,113 +2,123 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>微積分回合制決鬥</title>
+    <title>微積分決鬥：多人輪抽版</title>
     <style>
-        body { background: #222; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        .screen { display: none; padding: 20px; height: 100vh; flex-direction: column; justify-content: center; align-items: center; }
-        #setup-screen { display: flex; }
+        :root { --main-gold: #f1c40f; --bg-dark: #1a1a1a; }
+        body { background: var(--bg-dark); color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; }
         
-        .active-player { font-size: 2rem; font-weight: bold; margin-bottom: 10px; padding: 10px 40px; border-radius: 50px; }
-        .p1-turn { background: #4a90e2; color: white; }
-        .p2-turn { background: #e94e77; color: white; }
+        .screen { display: none; padding: 20px; min-height: 100vh; flex-direction: column; justify-content: center; align-items: center; }
+        #setup-screen { display: flex; }
 
-        .timer-bar-bg { width: 300px; height: 10px; background: #444; margin: 20px auto; border-radius: 5px; overflow: hidden; }
-        #timer-bar { width: 100%; height: 100%; background: #f1c40f; transition: width 0.1s linear; }
+        /* 設定框 */
+        .config-box { background: #333; padding: 30px; border-radius: 20px; border: 2px solid var(--main-gold); }
+        input[type="number"] { padding: 10px; font-size: 1.2rem; width: 60px; border-radius: 5px; border: none; text-align: center; }
 
-        .math-display { 
-            background: #000; border: 2px solid #555; border-radius: 15px; 
-            padding: 30px; margin: 20px auto; width: 80%; max-width: 500px;
-            font-size: 1.5rem; line-height: 1.8; min-height: 150px;
+        /* 遊戲畫面元件 */
+        .player-tag { font-size: 2rem; font-weight: bold; padding: 10px 50px; border-radius: 50px; background: var(--main-gold); color: #000; margin-bottom: 20px; }
+        
+        .timer-container { width: 300px; height: 15px; background: #444; border-radius: 10px; margin: 20px auto; overflow: hidden; }
+        #timer-bar { width: 100%; height: 100%; background: #e74c3c; transition: width 0.1s linear; }
+
+        .math-card { 
+            background: #000; border: 2px solid #555; padding: 40px; border-radius: 15px; 
+            font-size: 1.8rem; line-height: 1.6; margin: 20px; min-width: 350px;
         }
 
-        .btn-group button { 
-            padding: 15px 40px; font-size: 1.2rem; cursor: pointer; 
-            margin: 10px; border-radius: 10px; border: none; font-weight: bold;
-        }
-        .btn-yes { background: #27ae60; color: white; }
+        button { padding: 15px 35px; font-size: 1.2rem; cursor: pointer; border-radius: 10px; border: none; font-weight: bold; transition: 0.2s; }
+        button:hover { transform: scale(1.05); }
+        .btn-yes { background: #27ae60; color: white; margin-right: 10px; }
         .btn-no { background: #c0392b; color: white; }
-        .btn-main { background: #f1c40f; color: #000; }
+        .btn-start { background: var(--main-gold); margin-top: 20px; }
 
-        .score-board { display: flex; gap: 50px; font-size: 1.2rem; margin-top: 30px; }
-        .ready-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); display: none; 
-            flex-direction: column; justify-content: center; align-items: center; z-index: 100;
-        }
+        /* 計分板 */
+        .scoreboard { margin-top: 40px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .score-item { background: #444; padding: 10px 20px; border-radius: 10px; border-bottom: 3px solid var(--main-gold); }
+
+        /* 準備遮罩 */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
     <div id="setup-screen" class="screen">
-        <h1 style="color: #f1c40f; font-size: 3rem;">📐 微積分限時決鬥 ⚡</h1>
-        <p>一人一回合，五秒內沒答題就算錯！</p>
-        <div>
-            <button class="btn-main" onclick="initGame('limit')">極限模式</button>
-            <button class="btn-main" onclick="initGame('cont')">連續模式</button>
+        <div class="config-box">
+            <h1 style="color: var(--main-gold);">📐 多人微積分大戰</h1>
+            <div style="margin: 20px 0;">
+                <label>總玩家人數：</label>
+                <input type="number" id="total-players" value="2" min="2" max="10">
+            </div>
+            <p>模式選擇：</p>
+            <button class="btn-start" onclick="initMultiGame('limit')">極限是否存在</button>
+            <button class="btn-start" onclick="initMultiGame('cont')">函數是否連續</button>
         </div>
     </div>
 
-    <div id="ready-overlay" class="ready-overlay">
-        <h2 id="next-player-text">輪到玩家 2</h2>
-        <p>請接手滑鼠，準備好後點擊下方按鈕</p>
-        <button class="btn-main" onclick="startTurn()">我準備好了！</button>
+    <div id="ready-overlay" class="overlay">
+        <h1 id="next-player-name" style="font-size: 3rem; color: var(--main-gold);">玩家 X</h1>
+        <p style="font-size: 1.5rem;">請接過滑鼠...</p>
+        <button class="btn-start" onclick="startActualTurn()">我準備好了，開始 5 秒倒數！</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="turn-indicator" class="active-player">玩家 1 的回合</div>
+        <div id="current-player-tag" class="player-tag">玩家 1</div>
         
-        <div class="timer-bar-bg">
+        <div class="timer-container">
             <div id="timer-bar"></div>
         </div>
 
-        <div class="math-display" id="question-text">載入中...</div>
+        <div class="math-card" id="math-ques">題目載入中...</div>
 
         <div class="btn-group">
-            <button class="btn-yes" onclick="handleAnswer(true)">YES (存在/連續)</button>
-            <button class="btn-no" onclick="handleAnswer(false)">NO (不存在/不連續)</button>
+            <button class="btn-yes" onclick="submitAnswer(true)">YES</button>
+            <button class="btn-no" onclick="submitAnswer(false)">NO</button>
         </div>
 
-        <div class="score-board">
-            <div style="color: #4a90e2;">玩家 1: <span id="s1">0</span></div>
-            <div style="color: #e94e77;">玩家 2: <span id="s2">0</span></div>
-        </div>
+        <div class="scoreboard" id="board">
+            </div>
     </div>
 
     <script>
-        let game = {
+        let state = {
+            numPlayers: 2,
+            scores: [],
+            currentPlayerIdx: 0, // 從 0 開始算
             mode: '',
-            scores: [0, 0],
-            currentPlayer: 1, // 1 或 2
             currentAns: null,
             timer: null,
             timeLeft: 5.0
         };
 
-        function initGame(mode) {
-            game.mode = mode;
+        function initMultiGame(mode) {
+            state.numPlayers = parseInt(document.getElementById('total-players').value);
+            state.mode = mode;
+            state.scores = new Array(state.numPlayers).fill(0);
+            
+            // 初始化計分板 UI
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            for(let i=0; i<state.numPlayers; i++) {
+                board.innerHTML += `<div class="score-item" id="sb-${i}">玩家 ${i+1}: 0 分</div>`;
+            }
+
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'flex';
-            prepareTurn(1);
-        }
-
-        function prepareTurn(player) {
-            game.currentPlayer = player;
-            const overlay = document.getElementById('ready-overlay');
-            const text = document.getElementById('next-player-text');
             
-            overlay.style.display = 'flex';
-            text.innerText = `輪到玩家 ${player}`;
-            text.className = (player === 1) ? 'p1-turn active-player' : 'p2-turn active-player';
+            showReadyOverlay();
         }
 
-        function startTurn() {
+        function showReadyOverlay() {
+            const overlay = document.getElementById('ready-overlay');
+            document.getElementById('next-player-name').innerText = `輪到 玩家 ${state.currentPlayerIdx + 1}`;
+            overlay.style.display = 'flex';
+        }
+
+        function startActualTurn() {
             document.getElementById('ready-overlay').style.display = 'none';
-            const indicator = document.getElementById('turn-indicator');
-            indicator.innerText = `玩家 ${game.currentPlayer} 的回合`;
-            indicator.className = (game.currentPlayer === 1) ? 'p1-turn active-player' : 'p2-turn active-player';
+            document.getElementById('current-player-tag').innerText = `玩家 ${state.currentPlayerIdx + 1}`;
             
             generateQuestion();
-            resetTimer();
+            startTimer();
         }
 
         function generateQuestion() {
@@ -117,58 +127,59 @@
             const a = Math.floor(Math.random() * 3) + 2;
             let qHtml = "";
 
-            if (game.mode === 'limit') {
+            if (state.mode === 'limit') {
                 const b = Math.floor(Math.random() * 5);
                 const d = isTrue ? a : a + 1;
                 const e = isTrue ? b : b + 2;
                 qHtml = `f(x) = { ${a}x + ${b}, x < ${c}<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { ${d}x + ${e}, x > ${c}<br>問: lim<sub>x→${c}</sub> f(x) 存在?`;
             } else {
                 const valAtC = isTrue ? (a * c) : (a * c + 2);
-                qHtml = `f(x) = { ${a}x, x ≠ ${c}<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { ${valAtC}, x = ${c}<br>問: f(x) 在 x = ${c} 連續?`;
+                qHtml = `f(x) = { ${a}x, x ≠ ${c}<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { ${valAtC}, x = ${c}<br>問: f(x) 在 x = ${c} 是否連續?`;
             }
 
-            document.getElementById('question-text').innerHTML = qHtml;
-            game.currentAns = isTrue;
+            document.getElementById('math-ques').innerHTML = qHtml;
+            state.currentAns = isTrue;
         }
 
-        function resetTimer() {
-            clearInterval(game.timer);
-            game.timeLeft = 5.0;
+        function startTimer() {
+            state.timeLeft = 5.0;
             const bar = document.getElementById('timer-bar');
+            clearInterval(state.timer);
             
-            game.timer = setInterval(() => {
-                game.timeLeft -= 0.1;
-                bar.style.width = (game.timeLeft / 5 * 100) + "%";
+            state.timer = setInterval(() => {
+                state.timeLeft -= 0.1;
+                bar.style.width = (state.timeLeft / 5 * 100) + "%";
                 
-                if (game.timeLeft <= 0) {
-                    clearInterval(game.timer);
-                    alert("時間到！這題算錯。");
-                    switchPlayer();
+                if (state.timeLeft <= 0) {
+                    clearInterval(state.timer);
+                    alert("時間到！失分！");
+                    nextTurn();
                 }
             }, 100);
         }
 
-        function handleAnswer(userGuess) {
-            clearInterval(game.timer);
-            if (userGuess === game.currentAns) {
-                game.scores[game.currentPlayer - 1]++;
-                document.getElementById(`s${game.currentPlayer}`).innerText = game.scores[game.currentPlayer - 1];
-                alert("答對了！");
+        function submitAnswer(guess) {
+            clearInterval(state.timer);
+            if (guess === state.currentAns) {
+                state.scores[state.currentPlayerIdx]++;
+                document.getElementById(`sb-${state.currentPlayerIdx}`).innerText = `玩家 ${state.currentPlayerIdx + 1}: ${state.scores[state.currentPlayerIdx]} 分`;
+                alert("答對了！加一分！");
             } else {
                 alert("答錯了...");
             }
 
-            if (game.scores[game.currentPlayer - 1] >= 5) {
-                alert(`🎊 玩家 ${game.currentPlayer} 獲勝！`);
+            // 勝利條件：有人達到 5 分
+            if (state.scores[state.currentPlayerIdx] >= 5) {
+                alert(`🏆 最終勝利者是：玩家 ${state.currentPlayerIdx + 1}！！`);
                 location.reload();
             } else {
-                switchPlayer();
+                nextTurn();
             }
         }
 
-        function switchPlayer() {
-            const nextP = (game.currentPlayer === 1) ? 2 : 1;
-            prepareTurn(nextP);
+        function nextTurn() {
+            state.currentPlayerIdx = (state.currentPlayerIdx + 1) % state.numPlayers;
+            showReadyOverlay();
         }
     </script>
 </body>

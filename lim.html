@@ -2,131 +2,173 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>微積分決鬥</title>
+    <title>微積分回合制決鬥</title>
     <style>
-        body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
-        .screen { display: none; padding: 20px; }
-        #setup-screen { display: block; } /* 預設顯示設定畫面 */
+        body { background: #222; color: #fff; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        .screen { display: none; padding: 20px; height: 100vh; flex-direction: column; justify-content: center; align-items: center; }
+        #setup-screen { display: flex; }
         
-        .duel-container { display: flex; justify-content: space-around; }
-        .player-box { border: 2px solid #555; padding: 20px; width: 45%; background: #333; }
-        
+        .active-player { font-size: 2rem; font-weight: bold; margin-bottom: 10px; padding: 10px 40px; border-radius: 50px; }
+        .p1-turn { background: #4a90e2; color: white; }
+        .p2-turn { background: #e94e77; color: white; }
+
+        .timer-bar-bg { width: 300px; height: 10px; background: #444; margin: 20px auto; border-radius: 5px; overflow: hidden; }
+        #timer-bar { width: 100%; height: 100%; background: #f1c40f; transition: width 0.1s linear; }
+
         .math-display { 
-            background: #000; border-radius: 10px; padding: 20px; 
-            margin: 20px 0; min-height: 100px; font-size: 1.2rem; line-height: 1.5;
+            background: #000; border: 2px solid #555; border-radius: 15px; 
+            padding: 30px; margin: 20px auto; width: 80%; max-width: 500px;
+            font-size: 1.5rem; line-height: 1.8; min-height: 150px;
         }
-        
-        button { 
-            padding: 15px 25px; cursor: pointer; font-size: 1rem; 
-            margin: 5px; border-radius: 5px; border: none;
+
+        .btn-group button { 
+            padding: 15px 40px; font-size: 1.2rem; cursor: pointer; 
+            margin: 10px; border-radius: 10px; border: none; font-weight: bold;
         }
-        .start-btn { background: #f1c40f; font-weight: bold; }
-        .yes-btn { background: #27ae60; color: white; }
-        .no-btn { background: #c0392b; color: white; }
-        .score-board { font-size: 2rem; color: #f1c40f; }
+        .btn-yes { background: #27ae60; color: white; }
+        .btn-no { background: #c0392b; color: white; }
+        .btn-main { background: #f1c40f; color: #000; }
+
+        .score-board { display: flex; gap: 50px; font-size: 1.2rem; margin-top: 30px; }
+        .ready-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); display: none; 
+            flex-direction: column; justify-content: center; align-items: center; z-index: 100;
+        }
     </style>
 </head>
 <body>
 
     <div id="setup-screen" class="screen">
-        <h1>📐 微積分極限/連續挑戰 ⚡</h1>
-        <p>請選擇遊戲模式：</p>
-        <button class="start-btn" onclick="uiStartGame('limit')">極限模式 (存在?)</button>
-        <button class="start-btn" onclick="uiStartGame('cont')">連續模式 (連續?)</button>
+        <h1 style="color: #f1c40f; font-size: 3rem;">📐 微積分限時決鬥 ⚡</h1>
+        <p>一人一回合，五秒內沒答題就算錯！</p>
+        <div>
+            <button class="btn-main" onclick="initGame('limit')">極限模式</button>
+            <button class="btn-main" onclick="initGame('cont')">連續模式</button>
+        </div>
+    </div>
+
+    <div id="ready-overlay" class="ready-overlay">
+        <h2 id="next-player-text">輪到玩家 2</h2>
+        <p>請接手滑鼠，準備好後點擊下方按鈕</p>
+        <button class="btn-main" onclick="startTurn()">我準備好了！</button>
     </div>
 
     <div id="game-screen" class="screen">
-        <h2 id="mode-title">模式</h2>
-        <div class="duel-container">
-            <div class="player-box">
-                <h3>玩家 1</h3>
-                <div class="score-board" id="s1">0</div>
-                <div class="math-display" id="q1">載入中...</div>
-                <button class="yes-btn" onclick="uiCheckAns(1, true)">YES</button>
-                <button class="no-btn" onclick="uiCheckAns(1, false)">NO</button>
-            </div>
-            <div class="player-box">
-                <h3>玩家 2</h3>
-                <div class="score-board" id="s2">0</div>
-                <div class="math-display" id="q2">載入中...</div>
-                <button class="yes-btn" onclick="uiCheckAns(2, true)">YES</button>
-                <button class="no-btn" onclick="uiCheckAns(2, false)">NO</button>
-            </div>
+        <div id="turn-indicator" class="active-player">玩家 1 的回合</div>
+        
+        <div class="timer-bar-bg">
+            <div id="timer-bar"></div>
+        </div>
+
+        <div class="math-display" id="question-text">載入中...</div>
+
+        <div class="btn-group">
+            <button class="btn-yes" onclick="handleAnswer(true)">YES (存在/連續)</button>
+            <button class="btn-no" onclick="handleAnswer(false)">NO (不存在/不連續)</button>
+        </div>
+
+        <div class="score-board">
+            <div style="color: #4a90e2;">玩家 1: <span id="s1">0</span></div>
+            <div style="color: #e94e77;">玩家 2: <span id="s2">0</span></div>
         </div>
     </div>
 
     <script>
-        // 遊戲狀態
-        var gameState = {
+        let game = {
             mode: '',
             scores: [0, 0],
-            ans: [null, null]
+            currentPlayer: 1, // 1 或 2
+            currentAns: null,
+            timer: null,
+            timeLeft: 5.0
         };
 
-        // 開始遊戲
-        function uiStartGame(mode) {
-            console.log("Game Starting: " + mode);
-            gameState.mode = mode;
-            gameState.scores = [0, 0];
-            
-            document.getElementById('mode-title').innerText = (mode === 'limit' ? "模式：極限是否存在？" : "模式：函數是否連續？");
+        function initGame(mode) {
+            game.mode = mode;
             document.getElementById('setup-screen').style.display = 'none';
-            document.getElementById('game-screen').style.display = 'block';
-            
-            refreshQ(1);
-            refreshQ(2);
+            document.getElementById('game-screen').style.display = 'flex';
+            prepareTurn(1);
         }
 
-        // 產生題目
-        function generateQ() {
-            var c = Math.floor(Math.random() * 3) + 1;
-            var isTrue = Math.random() > 0.5;
-            var a = Math.floor(Math.random() * 3) + 2;
+        function prepareTurn(player) {
+            game.currentPlayer = player;
+            const overlay = document.getElementById('ready-overlay');
+            const text = document.getElementById('next-player-text');
             
-            if (gameState.mode === 'limit') {
-                var b = Math.floor(Math.random() * 5);
-                var d = isTrue ? a : a + 1;
-                var e = isTrue ? b : b + 2;
-                return {
-                    txt: "f(x) = { " + a + "x + " + b + ", x < " + c + "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { " + d + "x + " + e + ", x > " + c + "<br>問: lim<sub>x→" + c + "</sub> f(x) 存在?",
-                    ans: isTrue
-                };
+            overlay.style.display = 'flex';
+            text.innerText = `輪到玩家 ${player}`;
+            text.className = (player === 1) ? 'p1-turn active-player' : 'p2-turn active-player';
+        }
+
+        function startTurn() {
+            document.getElementById('ready-overlay').style.display = 'none';
+            const indicator = document.getElementById('turn-indicator');
+            indicator.innerText = `玩家 ${game.currentPlayer} 的回合`;
+            indicator.className = (game.currentPlayer === 1) ? 'p1-turn active-player' : 'p2-turn active-player';
+            
+            generateQuestion();
+            resetTimer();
+        }
+
+        function generateQuestion() {
+            const c = Math.floor(Math.random() * 3) + 1;
+            const isTrue = Math.random() > 0.5;
+            const a = Math.floor(Math.random() * 3) + 2;
+            let qHtml = "";
+
+            if (game.mode === 'limit') {
+                const b = Math.floor(Math.random() * 5);
+                const d = isTrue ? a : a + 1;
+                const e = isTrue ? b : b + 2;
+                qHtml = `f(x) = { ${a}x + ${b}, x < ${c}<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { ${d}x + ${e}, x > ${c}<br>問: lim<sub>x→${c}</sub> f(x) 存在?`;
             } else {
-                var valAtC = isTrue ? (a * c) : (a * c + 2);
-                return {
-                    txt: "f(x) = { " + a + "x, x ≠ " + c + "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { " + valAtC + ", x = " + c + "<br>問: f(x) 在 x = " + c + " 是否連續?",
-                    ans: isTrue
-                };
+                const valAtC = isTrue ? (a * c) : (a * c + 2);
+                qHtml = `f(x) = { ${a}x, x ≠ ${c}<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { ${valAtC}, x = ${c}<br>問: f(x) 在 x = ${c} 連續?`;
             }
+
+            document.getElementById('question-text').innerHTML = qHtml;
+            game.currentAns = isTrue;
         }
 
-        // 刷新題目
-        function refreshQ(pNum) {
-            var data = generateQ();
-            document.getElementById('q' + pNum).innerHTML = data.txt;
-            gameState.ans[pNum - 1] = data.ans;
-        }
-
-        // 檢查答案
-        function uiCheckAns(pNum, userGuess) {
-            if (userGuess === gameState.ans[pNum - 1]) {
-                gameState.scores[pNum - 1]++;
-                document.getElementById('s' + pNum).innerText = gameState.scores[pNum - 1];
+        function resetTimer() {
+            clearInterval(game.timer);
+            game.timeLeft = 5.0;
+            const bar = document.getElementById('timer-bar');
+            
+            game.timer = setInterval(() => {
+                game.timeLeft -= 0.1;
+                bar.style.width = (game.timeLeft / 5 * 100) + "%";
                 
-                if (gameState.scores[pNum - 1] >= 5) {
-                    alert("玩家 " + pNum + " 獲勝！");
-                    location.reload();
-                } else {
-                    refreshQ(pNum);
+                if (game.timeLeft <= 0) {
+                    clearInterval(game.timer);
+                    alert("時間到！這題算錯。");
+                    switchPlayer();
                 }
+            }, 100);
+        }
+
+        function handleAnswer(userGuess) {
+            clearInterval(game.timer);
+            if (userGuess === game.currentAns) {
+                game.scores[game.currentPlayer - 1]++;
+                document.getElementById(`s${game.currentPlayer}`).innerText = game.scores[game.currentPlayer - 1];
+                alert("答對了！");
             } else {
-                // 答錯閃一下紅光
-                document.getElementById('q' + pNum).style.color = 'red';
-                setTimeout(function(){ 
-                    document.getElementById('q' + pNum).style.color = 'white';
-                    refreshQ(pNum);
-                }, 300);
+                alert("答錯了...");
             }
+
+            if (game.scores[game.currentPlayer - 1] >= 5) {
+                alert(`🎊 玩家 ${game.currentPlayer} 獲勝！`);
+                location.reload();
+            } else {
+                switchPlayer();
+            }
+        }
+
+        function switchPlayer() {
+            const nextP = (game.currentPlayer === 1) ? 2 : 1;
+            prepareTurn(nextP);
         }
     </script>
 </body>

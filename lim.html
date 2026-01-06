@@ -2,97 +2,96 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>微積分決鬥：極限與連續</title>
+    <title>微積分決鬥</title>
     <style>
-        :root { --p1-color: #4a90e2; --p2-color: #e94e77; }
-        body { background: #1a1a1a; color: white; font-family: sans-serif; margin: 0; text-align: center; }
-        .setup { padding: 50px; }
-        .game-container { display: none; grid-template-columns: 1fr 1fr; height: 100vh; }
-        .player-zone { padding: 20px; border: 2px solid #333; position: relative; }
-        #p1 { border-color: var(--p1-color); }
-        #p2 { border-color: var(--p2-color); }
-        .math-box { background: #333; padding: 20px; border-radius: 10px; min-height: 150px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 20px; }
-        .btn-group { display: flex; gap: 10px; justify-content: center; }
-        button { padding: 15px 30px; font-size: 1.2rem; cursor: pointer; border: none; border-radius: 5px; transition: 0.2s; }
-        .btn-yes { background: #27ae60; color: white; }
-        .btn-no { background: #c0392b; color: white; }
-        .score { font-size: 2rem; font-weight: bold; }
-        .feedback { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 1.2rem; }
+        body { background: #222; color: #fff; font-family: sans-serif; text-align: center; }
+        .screen { display: none; padding: 20px; }
+        #setup-screen { display: block; } /* 預設顯示設定畫面 */
+        
+        .duel-container { display: flex; justify-content: space-around; }
+        .player-box { border: 2px solid #555; padding: 20px; width: 45%; background: #333; }
+        
+        .math-display { 
+            background: #000; border-radius: 10px; padding: 20px; 
+            margin: 20px 0; min-height: 100px; font-size: 1.2rem; line-height: 1.5;
+        }
+        
+        button { 
+            padding: 15px 25px; cursor: pointer; font-size: 1rem; 
+            margin: 5px; border-radius: 5px; border: none;
+        }
+        .start-btn { background: #f1c40f; font-weight: bold; }
+        .yes-btn { background: #27ae60; color: white; }
+        .no-btn { background: #c0392b; color: white; }
+        .score-board { font-size: 2rem; color: #f1c40f; }
     </style>
 </head>
 <body>
 
-<div id="setup-screen" class="setup">
-    <h1>📐 微積分決鬥場 ⚡</h1>
-    <p>選擇遊戲模式：</p>
-    <button onclick="startGame('limit')">極限模式</button>
-    <button onclick="startGame('cont')">連續模式</button>
-</div>
-
-<div id="game-screen" class="game-container">
-    <div id="p1" class="player-zone">
-        <h2 style="color: var(--p1-color)">玩家 1</h2>
-        <div class="score" id="score1">0 / 5</div>
-        <div class="math-box" id="ques1">載入中...</div>
-        <div class="btn-group">
-            <button class="btn-yes" onclick="checkAnswer(1, true)">存在 / 連續</button>
-            <button class="btn-no" onclick="checkAnswer(1, false)">不存在 / 不連續</button>
-        </div>
-        <div id="feed1" class="feedback"></div>
+    <div id="setup-screen" class="screen">
+        <h1>📐 微積分極限/連續挑戰 ⚡</h1>
+        <p>請選擇遊戲模式：</p>
+        <button class="start-btn" onclick="uiStartGame('limit')">極限模式 (存在?)</button>
+        <button class="start-btn" onclick="uiStartGame('cont')">連續模式 (連續?)</button>
     </div>
 
-    <div id="p2" class="player-zone">
-        <h2 style="color: var(--p2-color)">玩家 2</h2>
-        <div class="score" id="score2">0 / 5</div>
-        <div class="math-box" id="ques2">載入中...</div>
-        <div class="btn-group">
-            <button class="btn-yes" onclick="checkAnswer(2, true)">存在 / 連續</button>
-            <button class="btn-no" onclick="checkAnswer(2, false)">不存在 / 不連續</button>
+    <div id="game-screen" class="screen">
+        <h2 id="mode-title">模式</h2>
+        <div class="duel-container">
+            <div class="player-box">
+                <h3>玩家 1</h3>
+                <div class="score-board" id="s1">0</div>
+                <div class="math-display" id="q1">載入中...</div>
+                <button class="yes-btn" onclick="uiCheckAns(1, true)">YES</button>
+                <button class="no-btn" onclick="uiCheckAns(1, false)">NO</button>
+            </div>
+            <div class="player-box">
+                <h3>玩家 2</h3>
+                <div class="score-board" id="s2">0</div>
+                <div class="math-display" id="q2">載入中...</div>
+                <button class="yes-btn" onclick="uiCheckAns(2, true)">YES</button>
+                <button class="no-btn" onclick="uiCheckAns(2, false)">NO</button>
+            </div>
         </div>
-        <div id="feed2" class="feedback"></div>
     </div>
-</div>
 
-<script>
-    let currentMode = '';
-    let scores = [0, 0];
-    let answers = [null, null];
+    <script>
+        // 遊戲狀態
+        var gameState = {
+            mode: '',
+            scores: [0, 0],
+            ans: [null, null]
+        };
 
-    function startGame(mode) {
-        currentMode = mode;
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('game-screen').style.display = 'grid';
-        nextQuestion(1);
-        nextQuestion(2);
-    }
-
-    function generateMath() {
-        const c = Math.floor(Math.random() * 5); // 銜接點
-        const isTrue = Math.random() > 0.5;
-
-        if (currentMode === 'limit') {
-            // 極限題目：f(x) = ax + b (x<c), dx + e (x>c)
-            const a = Math.floor(Math.random() * 5) + 1;
-            const b = Math.floor(Math.random() * 5);
-            let d, e;
-            if (isTrue) {
-                d = a; e = b; // 左右相等
-            } else {
-                d = a + 1; e = b + 1; // 左右不等
-            }
-            return {
-                text: `f(x) = { ${a}x+${b}, x<${c} ; ${d}x+${e}, x>${c} } <br> 問: lim <sub>x→${c}</sub> f(x) 是否存在?`,
-                ans: isTrue
-            };
-        } else {
-            // 連續題目：需判斷極限存在且等於 f(c)
-            const a = Math.floor(Math.random() * 3) + 1;
-            const valAtC = isTrue ? a*c : a*c + 1;
-            return {
-                text: `f(x) = { ${a}x, x≠${c} ; ${valAtC}, x=${c} } <br> 問: f(x) 在 x=${c} 是否連續?`,
-                ans: isTrue
-            };
+        // 開始遊戲
+        function uiStartGame(mode) {
+            console.log("Game Starting: " + mode);
+            gameState.mode = mode;
+            gameState.scores = [0, 0];
+            
+            document.getElementById('mode-title').innerText = (mode === 'limit' ? "模式：極限是否存在？" : "模式：函數是否連續？");
+            document.getElementById('setup-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            
+            refreshQ(1);
+            refreshQ(2);
         }
-    }
 
-    function nextQuestion(pNum) {
+        // 產生題目
+        function generateQ() {
+            var c = Math.floor(Math.random() * 3) + 1;
+            var isTrue = Math.random() > 0.5;
+            var a = Math.floor(Math.random() * 3) + 2;
+            
+            if (gameState.mode === 'limit') {
+                var b = Math.floor(Math.random() * 5);
+                var d = isTrue ? a : a + 1;
+                var e = isTrue ? b : b + 2;
+                return {
+                    txt: "f(x) = { " + a + "x + " + b + ", x < " + c + "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { " + d + "x + " + e + ", x > " + c + "<br>問: lim<sub>x→" + c + "</sub> f(x) 存在?",
+                    ans: isTrue
+                };
+            } else {
+                var valAtC = isTrue ? (a * c) : (a * c + 2);
+                return {
+                    txt: "f(x) = { " + a + "x, x ≠ " + c + "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { " + valAtC + ", x = " + c + "<br>問: f(x) 在 x = "

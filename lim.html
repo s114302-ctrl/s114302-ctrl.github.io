@@ -94,4 +94,40 @@
             } else {
                 var valAtC = isTrue ? (a * c) : (a * c + 2);
                 return {
-                    txt: "f(x) = { " + a + "x, x ≠ " + c + "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { " + valAtC + ", x = " + c + "<br>問: f(x) 在 x = "
+                    txt: "f(x) = { " + a + "x, x ≠ " + c + "<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { " + valAtC + ", x = " + c + "<br>問: f(x) 在 x = " + c + " 是否連續?",
+                    ans: isTrue
+                };
+            }
+        }
+
+        // 刷新題目
+        function refreshQ(pNum) {
+            var data = generateQ();
+            document.getElementById('q' + pNum).innerHTML = data.txt;
+            gameState.ans[pNum - 1] = data.ans;
+        }
+
+        // 檢查答案
+        function uiCheckAns(pNum, userGuess) {
+            if (userGuess === gameState.ans[pNum - 1]) {
+                gameState.scores[pNum - 1]++;
+                document.getElementById('s' + pNum).innerText = gameState.scores[pNum - 1];
+                
+                if (gameState.scores[pNum - 1] >= 5) {
+                    alert("玩家 " + pNum + " 獲勝！");
+                    location.reload();
+                } else {
+                    refreshQ(pNum);
+                }
+            } else {
+                // 答錯閃一下紅光
+                document.getElementById('q' + pNum).style.color = 'red';
+                setTimeout(function(){ 
+                    document.getElementById('q' + pNum).style.color = 'white';
+                    refreshQ(pNum);
+                }, 300);
+            }
+        }
+    </script>
+</body>
+</html>

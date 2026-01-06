@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>微積分決鬥</title>
+    <title>微積分決鬥：詳解增強版</title>
     <style>
         :root { --gold: #f1c40f; --green: #2ecc71; --red: #e74c3c; }
         body { background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; text-align: center; margin: 0; }
@@ -37,19 +37,29 @@
         
         .scoreboard { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
         .score-item { background: #444; padding: 5px 15px; border-radius: 5px; border-left: 4px solid var(--gold); }
+
+        /* 新增連結樣式 */
+        .yt-link { margin-top: 40px; font-size: 0.9rem; color: #888; text-decoration: none; transition: color 0.3s; }
+        .yt-link:hover { color: var(--gold); }
     </style>
 </head>
 <body>
 
     <div id="setup-screen" class="screen">
-        <h1 style="color: var(--gold);">📐 微積分大戰</h1>
+        <h1 style="color: var(--gold);">📐 多人微積分大戰</h1>
         <p>一人 5 秒。誰先拿到 5 分就獲勝！</p>
         <div style="margin: 20px;">
             <label>玩家人數：</label>
             <input type="number" id="total-players" value="2" min="2" max="5" style="padding: 5px; font-size: 1rem;">
         </div>
-        <button class="btn-gold" onclick="initGame('limit')">極限模式</button>
-        <button class="btn-gold" onclick="initGame('cont')">連續模式</button>
+        <div>
+            <button class="btn-gold" onclick="initGame('limit')">極限模式</button>
+            <button class="btn-gold" onclick="initGame('cont')">連續模式</button>
+        </div>
+
+        <a href="https://www.youtube.com/watch?v=vvpiudJxoXM" target="_blank" class="yt-link">
+            不知道極限和連續是什麼? 請左轉YT ➔ https://www.youtube.com/watch?v=vvpiudJxoXM
+        </a>
     </div>
 
     <div id="game-screen" class="screen">

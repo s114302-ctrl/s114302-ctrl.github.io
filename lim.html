@@ -10,10 +10,8 @@
         .screen { display: none; padding: 20px; min-height: 100vh; flex-direction: column; justify-content: center; align-items: center; }
         #setup-screen { display: flex; }
 
-        /* 題目卡片 */
         .math-card { background: #000; border: 3px solid #444; padding: 30px; border-radius: 15px; font-size: 1.6rem; margin: 20px; min-width: 300px; line-height: 1.8; }
         
-        /* 自訂彈窗樣式 */
         #custom-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none;
@@ -26,7 +24,6 @@
         .modal-result { font-size: 2rem; font-weight: bold; margin-bottom: 10px; }
         .modal-explain { background: #111; padding: 15px; border-radius: 10px; text-align: left; font-size: 1rem; margin: 15px 0; color: #ccc; }
 
-        /* 計時條 */
         .timer-bg { width: 300px; height: 10px; background: #444; border-radius: 5px; margin: 15px; overflow: hidden; }
         #timer-bar { width: 100%; height: 100%; background: var(--gold); transition: width 0.1s linear; }
 
@@ -38,37 +35,46 @@
         .scoreboard { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
         .score-item { background: #444; padding: 5px 15px; border-radius: 5px; border-left: 4px solid var(--gold); }
 
-        /* 新增連結樣式 */
-        .yt-link { margin-top: 40px; font-size: 0.9rem; color: #888; text-decoration: none; transition: color 0.3s; }
-        .yt-link:hover { color: var(--gold); }
+        /* YT 連結樣式優化 */
+        .yt-link { 
+            margin-top: 50px; 
+            font-size: 1rem; 
+            color: #aaa; 
+            text-decoration: none; 
+            padding: 10px 20px;
+            border: 1px dashed #555;
+            border-radius: 10px;
+            transition: all 0.3s; 
+        }
+        .yt-link:hover { color: #fff; background: rgba(255,0,0,0.1); border-color: #ff0000; }
     </style>
 </head>
 <body>
 
     <div id="setup-screen" class="screen">
         <h1 style="color: var(--gold);">📐 多人微積分大戰</h1>
-        <p>一人 5 秒。誰先拿到 5 分就獲勝！</p>
+        <p>一人 5 秒。誰先拿到 5 分就獲勝！🏆</p>
         <div style="margin: 20px;">
-            <label>玩家人數：</label>
+            <label>👥 玩家人數：</label>
             <input type="number" id="total-players" value="2" min="2" max="5" style="padding: 5px; font-size: 1rem;">
         </div>
         <div>
-            <button class="btn-gold" onclick="initGame('limit')">極限模式</button>
-            <button class="btn-gold" onclick="initGame('cont')">連續模式</button>
+            <button class="btn-gold" onclick="initGame('limit')">🚀 極限模式</button>
+            <button class="btn-gold" onclick="initGame('cont')">♾️ 連續模式</button>
         </div>
 
         <a href="https://www.youtube.com/watch?v=vvpiudJxoXM" target="_blank" class="yt-link">
-            不知道極限和連續是什麼? 請左轉YT ➔ https://www.youtube.com/watch?v=vvpiudJxoXM
+            🤔 不知道極限和連續是什麼嗎？請往左轉 👈 補課去 ➔ 📺 https://www.youtube.com/watch?v=vvpiudJxoXM
         </a>
     </div>
 
     <div id="game-screen" class="screen">
-        <div id="player-tag" style="font-size: 1.5rem; background: var(--gold); color: black; padding: 5px 30px; border-radius: 20px;">玩家 1</div>
+        <div id="player-tag" style="font-size: 1.5rem; background: var(--gold); color: black; padding: 5px 30px; border-radius: 20px; font-weight: bold;">玩家 1</div>
         <div class="timer-bg"><div id="timer-bar"></div></div>
         <div class="math-card" id="ques-text"></div>
         <div class="btn-group">
-            <button class="btn-yes" onclick="checkAnswer(true)">YES</button>
-            <button class="btn-no" onclick="checkAnswer(false)">NO</button>
+            <button class="btn-yes" onclick="checkAnswer(true)">YES (存在/連續)</button>
+            <button class="btn-no" onclick="checkAnswer(false)">NO (不存在/不連續)</button>
         </div>
         <div class="scoreboard" id="board"></div>
     </div>
@@ -77,7 +83,7 @@
         <div class="modal-content">
             <div id="res-title" class="modal-result"></div>
             <div id="res-explain" class="modal-explain"></div>
-            <button class="btn-gold" id="next-btn" onclick="closeModal()">換下一位！</button>
+            <button class="btn-gold" id="next-btn" onclick="closeModal()">下一位準備！🏃</button>
         </div>
     </div>
 
@@ -95,7 +101,7 @@
         }
 
         function nextQ() {
-            document.getElementById('player-tag').innerText = `玩家 ${s.current + 1} 的回合`;
+            document.getElementById('player-tag').innerText = `👤 玩家 ${s.current + 1} 的回合`;
             const c = Math.floor(Math.random() * 4) + 1;
             const isT = Math.random() > 0.5;
             const a = Math.floor(Math.random() * 3) + 2;
@@ -108,12 +114,12 @@
                 const L = a * c + b;
                 const R = d * c + e;
                 h = `f(x) = { ${a}x+${b}, x<${c} <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { ${d}x+${e}, x>${c} <br> 問: lim<sub>x→${c}</sub> f(x) 存在?`;
-                s.detail = `左極限趨近 ${L}，右極限趨近 ${R}。${L === R ? "兩者相等，所以極限存在。" : "兩者不相等，所以不存在。"}`;
+                s.detail = `💡 解析：\n左極限趨近 ${L}，右極限趨近 ${R}。\n${L === R ? "✅ 兩者相等，所以極限存在。" : "❌ 兩者不相等，所以不存在。"}`;
             } else {
                 const valC = isT ? a*c : a*c + 2;
                 const lim = a*c;
                 h = `f(x) = { ${a}x, x≠${c} <br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; { ${valC}, x=${c} <br> 問: f(x) 在 x=${c} 是否連續?`;
-                s.detail = `極限值(空心點)為 ${lim}，函數值 f(${c}) 為 ${valC}。${lim === valC ? "兩者相等，所以連續。" : "兩者不相等，所以不連續。"}`;
+                s.detail = `💡 解析：\n極限值(空心點)為 ${lim}，函數值 f(${c}) 為 ${valC}。\n${lim === valC ? "✅ 兩者相等，所以連續。" : "❌ 兩者不相等，所以不連續。"}`;
             }
 
             document.getElementById('ques-text').innerHTML = h;
@@ -127,7 +133,10 @@
             s.timer = setInterval(() => {
                 s.time -= 0.1;
                 document.getElementById('timer-bar').style.width = (s.time/5*100) + "%";
-                if (s.time <= 0) { showModal(false, "時間到了！這題沒拿到分數。"); }
+                if (s.time <= 0) { 
+                    clearInterval(s.timer);
+                    showModal(false, "⏰ 時間到了！反應太慢囉，這題沒拿到分數。"); 
+                }
             }, 100);
         }
 
@@ -141,7 +150,7 @@
         function showModal(correct, explain) {
             const m = document.getElementById('custom-modal');
             const t = document.getElementById('res-title');
-            t.innerText = correct ? "✅ 答對了！" : "❌ 答錯了！";
+            t.innerText = correct ? "🎉 答對了！" : "💥 答錯了！";
             t.style.color = correct ? "var(--green)" : "var(--red)";
             document.getElementById('res-explain').innerText = explain;
             m.style.display = 'flex';
@@ -150,7 +159,7 @@
         function closeModal() {
             document.getElementById('custom-modal').style.display = 'none';
             if (s.scores[s.current] >= 5) {
-                alert(`🎊 最終獲勝者：玩家 ${s.current + 1}！`);
+                alert(`🎊 最終大贏家：玩家 ${s.current + 1}！恭喜獲得微積分大師稱號！`);
                 location.reload();
             } else {
                 s.current = (s.current + 1) % s.players;
@@ -161,7 +170,7 @@
 
         function updateBoard() {
             const b = document.getElementById('board');
-            b.innerHTML = s.scores.map((sc, i) => `<div class="score-item">P${i+1}: ${sc}分</div>`).join('');
+            b.innerHTML = s.scores.map((sc, i) => `<div class="score-item">P${i+1}: ${sc} 分</div>`).join('');
         }
     </script>
 </body>
